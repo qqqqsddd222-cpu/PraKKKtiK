@@ -11,6 +11,7 @@ body {
     color: #f8fafc;
     line-height: 1.5;
     min-height: 100vh;
+    transition: padding 0.3s ease;
 }
 
 h1 {
@@ -91,7 +92,6 @@ input::placeholder {
 input:focus {
     background-color: #0f172a;
     border-color: #06b6d4;
-    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.22);
 }
 
 .btn-primary {
@@ -152,46 +152,9 @@ main section li::marker {
     color: #22d3ee;
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 4px;
+.controls-section {
+    margin-bottom: 4px;
 }
-
-th,
-td {
-    padding: 10px 12px;
-    text-align: left;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.15);
-    font-size: 13px;
-    color: #e2e8f0;
-}
-
-th {
-    background: rgba(15, 23, 42, 0.7);
-    color: #38bdf8;
-    font-weight: 600;
-    text-transform: capitalize;
-}
-
-tr:hover td {
-    background-color: rgba(56, 189, 248, 0.08);
-}
-
-footer {
-    text-align: center;
-    padding-top: 16px;
-    max-width: 760px;
-    margin: 0 auto;
-}
-
-footer p {
-    font-size: 12px;
-    color: #64748b;
-    margin: 0;
-}
-
-.controls-section { margin-bottom: 4px; }
 
 .controls {
     display: flex;
@@ -233,6 +196,42 @@ footer p {
     transform: translateY(1px);
 }
 
+.btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+input:focus,
+select:focus,
+button:focus,
+.sortable:focus {
+    outline: 2px solid #22d3ee;
+    outline-offset: 2px;
+    box-shadow: 0 0 10px rgba(34, 211, 238, 0.4);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 4px;
+}
+
+th,
+td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+    font-size: 13px;
+    color: #e2e8f0;
+}
+
+th {
+    background: rgba(15, 23, 42, 0.7);
+    color: #38bdf8;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
 table caption {
     caption-side: top;
     text-align: left;
@@ -240,6 +239,48 @@ table caption {
     font-size: 13px;
     color: #94a3b8;
     font-weight: 600;
+}
+
+tbody tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+tbody tr:nth-child(odd) {
+    background-color: transparent;
+}
+
+tbody tr {
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    cursor: pointer;
+}
+
+tbody tr:hover {
+    background-color: rgba(56, 189, 248, 0.15) !important;
+    transform: scale(1.005);
+}
+
+.sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+}
+
+.sortable:hover {
+    color: #22d3ee;
+}
+
+.sort-arrow {
+    display: inline-block;
+    margin-left: 4px;
+    font-size: 12px;
+}
+
+.sort-arrow.asc::after {
+    content: " ▲";
+}
+
+.sort-arrow.desc::after {
+    content: " ▼";
 }
 
 #stats-container .stats dl {
@@ -260,4 +301,158 @@ table caption {
     margin: 0;
     color: #f1f5f9;
     font-weight: 600;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-window {
+    background: #1e293b;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    transform: translateY(20px);
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-overlay.show .modal-window {
+    transform: translateY(0);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+    color: #38bdf8;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 28px;
+    cursor: pointer;
+    transition: color 0.2s;
+    line-height: 1;
+}
+
+.modal-close:hover {
+    color: #f87171;
+}
+
+.modal-body {
+    padding: 24px;
+    color: #cbd5e1;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.modal-body strong {
+    color: #f1f5f9;
+}
+
+.modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid rgba(148, 163, 184, 0.2);
+    display: flex;
+    justify-content: flex-end;
+}
+
+body.modal-open {
+    overflow: hidden;
+}
+
+@media (max-width: 768px) {
+    table,
+    thead,
+    tbody,
+    th,
+    td,
+    tr {
+        display: block;
+    }
+    
+    thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+    
+    tr {
+        margin-bottom: 15px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 10px;
+        background: rgba(30, 41, 59, 0.5);
+    }
+    
+    td {
+        border: none;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        position: relative;
+        padding-left: 50%;
+        text-align: right;
+    }
+    
+    td:before {
+        position: absolute;
+        top: 10px;
+        left: 12px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        text-align: left;
+        font-weight: bold;
+        color: #38bdf8;
+    }
+    
+    td:nth-of-type(1):before { content: "ID:"; }
+    td:nth-of-type(2):before { content: "Заголовок:"; }
+    td:nth-of-type(3):before { content: "Категория:"; }
+    td:nth-of-type(4):before { content: "Факт. расходы:"; }
+    td:nth-of-type(5):before { content: "План. расходы:"; }
+    td:nth-of-type(6):before { content: "Дата:"; }
+    td:nth-of-type(7):before { content: "Рейтинг:"; }
+}
+
+footer {
+    text-align: center;
+    padding-top: 16px;
+    max-width: 760px;
+    margin: 0 auto;
+}
+
+footer p {
+    font-size: 12px;
+    color: #64748b;
+    margin: 0;
 }
