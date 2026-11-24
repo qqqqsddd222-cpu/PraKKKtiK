@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>система управления бюджетом</title>
+    <title>Бюджет/система управления бюджетом</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -16,35 +16,35 @@
         <fieldset>
             <div>
                 <h2>Регистрация</h2>
-                <label>Как к вам можно образятсья</label>
+                <label for="reg-name">Как к вам можно обращаться</label>
                 <input type="text" id="reg-name" name="reg_name" placeholder="Иван НатаныЧ">
             </div>
             <div>
-                <label>почта/номер телефона</label>
-                <input type="text" id="reg-contact" name="reg_contact" placeholder="111@://gmail.com (999) 111 11 11">
+                <label for="reg-contact">Почта/номер телефона</label>
+                <input type="text" id="reg-contact" name="reg_contact" placeholder="111@gmail.com (999) 111 11 11">
             </div>
             <div>
-                <label>Придумайте пароль</label>
+                <label for="reg-password">Придумайте пароль</label>
                 <input type="password" id="reg-password" name="reg_password" placeholder="пароль?">
             </div>
             <div>
-                <label>Повторите пороль</label>
+                <label for="reg-password-confirm">Повторите пароль</label>
                 <input type="password" id="reg-password-confirm" name="reg_password_confirm" placeholder="повторите пароль">
             </div>
-            <button type="submit" class="btn-primary">Зарегестрироваться</button>
+            <button type="button" class="btn-primary">Зарегистрироваться</button>
         </fieldset>
 
         <fieldset>
             <div>
                 <h2>Вход в аккаунт</h2>
-                <label>почта/номер телефона</label>
-                <input type="text" id="login-contact" name="login_contact" placeholder="111@://gmail.com (999) 111 11 11">
+                <label for="login-contact">Почта/номер телефона</label>
+                <input type="text" id="login-contact" name="login_contact" placeholder="111@gmail.com (999) 111 11 11">
             </div>
             <div>
-                <label>Пороль</label>
+                <label for="login-password">Пароль</label>
                 <input type="password" id="login-password" name="login_password" placeholder="пароль">
             </div>
-            <button type="submit" class="btn-primary">Вход</button>
+            <button type="button" class="btn-primary">Вход</button>
         </fieldset>
     </section>
    </header>
@@ -61,7 +61,7 @@
                     <li><strong>Развитие и личные цели (30%):</strong> обучение, здоровье, отдых и текущие покупки.</li>
                     <li><strong>Накопления и резерв (20%):</strong> формирование подушки безопасности и долгосрочные задачи.</li>
                 </ul>
-                <label for="date">Выберите дату предпологаемого окончания проекта:</label>
+                <label for="date">Выберите дату предполагаемого окончания проекта:</label>
                 <input type="date" id="date" name="date" value="2026-11-23" min="2026-01-01" max="2027-12-31">
             </section>
         </fieldset>
@@ -70,36 +70,37 @@
             <section class="controls-section">
                 <h2>Управление каталогом</h2>
                 <div class="controls">
-                    <input type="search" id="search-input" placeholder="Поиск по названию…" aria-label="Поиск по названию">
-                    <select id="category-filter" aria-label="Фильтр по категории">
+                    <label for="search-input">Поиск</label>
+                    <input type="search" id="search-input" placeholder="Поиск по названию…">
+                    
+                    <label for="category-filter">Категория</label>
+                    <select id="category-filter">
                         <option value="">Все категории</option>
                     </select>
-                    <input type="number" id="min-price" placeholder="Цена от" aria-label="Минимальная цена">
-                    <input type="number" id="max-price" placeholder="Цена до" aria-label="Максимальная цена">
-                    <button type="button" id="sort-price-asc"  class="btn-secondary">Цена ↑</button>
-                    <button type="button" id="sort-price-desc" class="btn-secondary">Цена ↓</button>
-                    <button type="button" id="sort-rating"     class="btn-secondary">По рейтингу</button>
-                    <button type="button" id="sort-name"       class="btn-secondary">По названию</button>
-                    <input type="number" id="discount-percent" placeholder="Скидка %" min="0" max="99" aria-label="Процент скидки">
-                    <button type="button" id="apply-discount" class="btn-secondary">Применить скидку</button>
-                    <button type="button" id="reset-btn"      class="btn-secondary">Сбросить</button>
+
+                    <label for="min-price">Цена от</label>
+                    <input type="number" id="min-price" placeholder="от 0">
+                    <label for="max-price">до</label>
+                    <input type="number" id="max-price" placeholder="до 50000">
+
+                    <button type="button" id="reset-btn" class="btn-secondary">Сбросить</button>
                 </div>
             </section>
         </fieldset>
 
         <fieldset>
             <section>
-                <table>
+                <table id="main-table">
                     <caption>Каталог расходов</caption>
                     <thead>
                         <tr>
                             <th scope="col">id</th>
-                            <th scope="col">заголовок/описание</th>
-                            <th scope="col">категория расходов</th>
-                            <th scope="col">фактические расходы</th>
-                            <th scope="col">запланированные расходы</th>
-                            <th scope="col">дата оплаты/закупка</th>
-                            <th scope="col">рейтинг</th>
+                            <th scope="col">Заголовок</th>
+                            <th scope="col">Категория</th>
+                            <th scope="col" class="sortable" data-sort="expenses">Факт. расходы <span class="sort-arrow"></span></th>
+                            <th scope="col">План. расходы</th>
+                            <th scope="col" class="sortable" data-sort="date">Дата <span class="sort-arrow"></span></th>
+                            <th scope="col" class="sortable" data-sort="rating">Рейтинг <span class="sort-arrow"></span></th>
                         </tr>
                     </thead>
                     <tbody id="expenses-tbody"></tbody>
@@ -113,8 +114,21 @@
     </main>
 
     <footer>
-        <p>&copy: 2026 год, бюджет/рассходы</p>
+        <p>&copy; 2026 год, бюджет/расходы</p>
     </footer>
+
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-window" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+            <div class="modal-header">
+                <h2 id="modal-title">Детали расхода</h2>
+                <button class="modal-close" id="modal-close" aria-label="Закрыть">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body"></div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="modal-ok">Понятно</button>
+            </div>
+        </div>
+    </div>
 
     <script src="1.js"></script>
 </body>
