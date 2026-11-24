@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>система управления бюджетом</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -16,15 +19,13 @@
                 <label>Как к вам можно образятсья</label>
                 <input type="text" id="reg-name" name="reg_name" placeholder="Иван НатаныЧ">
             </div>
-
             <div>
                 <label>почта/номер телефона</label>
                 <input type="text" id="reg-contact" name="reg_contact" placeholder="111@://gmail.com (999) 111 11 11">
             </div>
-
             <div>
-            <label>Придумайте пароль</label>
-            <input type="password" id="reg-password" name="reg_password" placeholder="пароль?">
+                <label>Придумайте пароль</label>
+                <input type="password" id="reg-password" name="reg_password" placeholder="пароль?">
             </div>
             <div>
                 <label>Повторите пороль</label>
@@ -39,7 +40,6 @@
                 <label>почта/номер телефона</label>
                 <input type="text" id="login-contact" name="login_contact" placeholder="111@://gmail.com (999) 111 11 11">
             </div>
-
             <div>
                 <label>Пороль</label>
                 <input type="password" id="login-password" name="login_password" placeholder="пароль">
@@ -48,7 +48,6 @@
         </fieldset>
     </section>
    </header>
-
 
     <main>
         <fieldset>
@@ -64,27 +63,59 @@
                 </ul>
                 <label for="date">Выберите дату предпологаемого окончания проекта:</label>
                 <input type="date" id="date" name="date" value="2026-11-23" min="2026-01-01" max="2027-12-31">
-
             </section>
         </fieldset>
 
         <fieldset>
-            <section>  <!--поля, слева статься расхода, левее потраченные деньги, справо должено быть поле вода затраченных денег
-            все должно отправляться-->
-            <table>
-                <tr>
-                    <th>катигория расходов</th>
-                    <th>срок выполнения</th>
-                    <th>запланированные расходы</th>
-                    <th>фактические расходы</th>
-                </tr>
-            </table>
+            <section class="controls-section">
+                <h2>Управление каталогом</h2>
+                <div class="controls">
+                    <input type="search" id="search-input" placeholder="Поиск по названию…" aria-label="Поиск по названию">
+                    <select id="category-filter" aria-label="Фильтр по категории">
+                        <option value="">Все категории</option>
+                    </select>
+                    <input type="number" id="min-price" placeholder="Цена от" aria-label="Минимальная цена">
+                    <input type="number" id="max-price" placeholder="Цена до" aria-label="Максимальная цена">
+                    <button type="button" id="sort-price-asc"  class="btn-secondary">Цена ↑</button>
+                    <button type="button" id="sort-price-desc" class="btn-secondary">Цена ↓</button>
+                    <button type="button" id="sort-rating"     class="btn-secondary">По рейтингу</button>
+                    <button type="button" id="sort-name"       class="btn-secondary">По названию</button>
+                    <input type="number" id="discount-percent" placeholder="Скидка %" min="0" max="99" aria-label="Процент скидки">
+                    <button type="button" id="apply-discount" class="btn-secondary">Применить скидку</button>
+                    <button type="button" id="reset-btn"      class="btn-secondary">Сбросить</button>
+                </div>
             </section>
+        </fieldset>
+
+        <fieldset>
+            <section>
+                <table>
+                    <caption>Каталог расходов</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">id</th>
+                            <th scope="col">заголовок/описание</th>
+                            <th scope="col">категория расходов</th>
+                            <th scope="col">фактические расходы</th>
+                            <th scope="col">запланированные расходы</th>
+                            <th scope="col">дата оплаты/закупка</th>
+                            <th scope="col">рейтинг</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expenses-tbody"></tbody>
+                </table>
+            </section>
+        </fieldset>
+
+        <fieldset>
+            <section id="stats-container"></section>
         </fieldset>
     </main>
 
     <footer>
         <p>&copy: 2026 год, бюджет/рассходы</p>
     </footer>
+
+    <script src="1.js"></script>
 </body>
 </html>
