@@ -1,64 +1,80 @@
-function renderProductRow(product) {
-  const tr = document.createElement("tr");
-  tr.dataset.id = product.id;
-
-  const createCell = (text, label) => {
-    const td = document.createElement("td");
-    td.textContent = text;
-    if (label) td.setAttribute("data-label", label);
-    return td;
-  };
-
-  tr.appendChild(createCell(product.id, "ID"));
-  tr.appendChild(createCell(product.name, "Заголовок"));
-  tr.appendChild(createCell(product.category, "Категория"));
-
-  const tdStatus = document.createElement("td");
-  tdStatus.setAttribute("data-label", "Статус");
-  const badge = document.createElement("span");
-  
-  badge.className = "badge " + (product.inStock ? "badge-success" : "badge-danger");
-  badge.textContent = product.status;
-  
-  tdStatus.appendChild(badge);
-  tr.appendChild(tdStatus);
-
-  tr.appendChild(createCell(`${product.expenses} руб.`, "Факт. расходы"));
-  tr.appendChild(createCell(product.date, "Дата"));
-  tr.appendChild(createCell("★".repeat(product.rating), "Рейтинг"));
-
-  return tr;
+export function createElement(tag, className, text) {
+  const el = document.createElement(tag);
+  if (className) el.className = className;
+  if (text !== undefined) el.textContent = text;
+  return el;
 }
 
-function renderTable(products) {
-  const tbody = document.createElement("tbody");
-  tbody.id = "expenses-tbody";
-  products.forEach(p => tbody.appendChild(renderProductRow(p)));
-  return tbody;
+export function renderProjectCard(project) {
+  const article = createElement('article', 'card');
+  article.setAttribute('data-id', project.id);
+
+  const header = createElement('header', 'card__header');
+  const title = createElement('h3', 'card__title', project.title);
+  const badge = createElement('span', `badge badge--${project.status}`, project.status);
+  header.append(title, badge);
+
+  const desc = createElement('p', 'card__desc', project.description);
+  
+  const meta = createElement('footer', 'card__meta');
+  const time = createElement('time', '', project.createdAt);
+  time.setAttribute('datetime', project.createdAt);
+  meta.append(time);
+
+  article.append(header, desc, meta);
+
+  article.addEventListener('click', () => {
+    const event = new CustomEvent('open-modal', { detail: { item: project, type: 'project' } });
+    document.dispatchEvent(event);
+  });
+
+  return article;
 }
 
-function renderStatistics(stats) {
-  const section = document.createElement("section");
-  section.className = "stats";
-  
-  const h2 = document.createElement("h2");
-  h2.textContent = "Статистика по каталогу";
-  section.appendChild(h2);
-  
-  const dl = document.createElement("dl");
-  const addItem = (term, value) => {
-    const dt = document.createElement("dt");
-    dt.textContent = term;
-    const dd = document.createElement("dd");
-    dd.textContent = value;
-    dl.append(dt, dd);
-  };
+export function renderExpenseTable(rows) {
+  const table = createElement('table', 'table');
+  const caption = createElement('caption', '', 'Статьи расходов (Факт)');
+  const thead = createElement('thead');
+  const trHead = createElement('tr');
+  const thId = createElement('th', '', 'ID'); thId.scope = 'col';
+  const thTitle = createElement('th', '', 'Название'); thTitle.scope = 'col';
+  const thCat = createElement('th', '', 'Категория'); thCat.scope = 'col';
+  const thFact = createElement('th', '', 'Сумма'); thFact.scope = 'col';
+  const thStatus = createElement('th', '', 'Статус'); thStatus.scope = 'col';
+  trHead.append(thId, thTitle, thCat, thFact, thStatus);
+  thead.append(trHead);
 
-  addItem("Всего записей:", stats.total);
-  addItem("Общая сумма:", `${stats.totalSum} руб.`);
-  addItem("Средний расход:", `${stats.avgPrice.toFixed(2)} руб.`);
-  addItem("Средний рейтинг:", stats.avgRating.toFixed(2));
-  
-  section.appendChild(dl);
-  return section;
+  const tbody = createElement('tbody');
+  rows.forEach(row => {
+    const tr = createElement('tr');
+    const tdId = createElement('td', '', row.id); tdId.setAttribute('data-label', 'ID');
+    const tdTitle = createElement('td', '', row.title); tdTitle.setAttribute('data-label', 'Название');
+    const tdCat = createElement('td', '', row.category); tdCat.setAttribute('data-label', 'Категория');
+    const tdFact = createElement('td', '', `${row.fact.toLocaleString()} ₽`); tdFact.setAttribute('data-label', 'Сумма');
+    const tdStatus = createElement('td', '', row.status); tdStatus.setAttribute('data-label', 'Статус');
+    tr.append(tdId, tdTitle, tdCat, tdFact, tdStatus);
+    tbody.append(tr);
+  });
+
+  table.append(caption, thead, tbody);
+  return table;
+}
+
+export function renderEmpty(message = 'Данных пока нет') {
+  const wrap = createElement('section', 'empty-state');
+  const icon = createElement('span', 'empty-state__icon', '📭');
+  icon.setAttribute('aria-hidden', 'true');
+  const text = createElement('p', '', message);
+  wrap.append(icon, text);
+  return wrap;
+}
+
+export function renderSkeleton(count = 4) {
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < count; i++) {
+    const row = createElement('div', 'skeleton-card');
+    row.setAttribute('aria-hidden', 'true');
+    frag.append(row);
+  }
+  return frag;
 }
