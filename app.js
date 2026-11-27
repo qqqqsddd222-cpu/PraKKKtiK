@@ -1,224 +1,196 @@
-document.addEventListener("DOMContentLoaded", () => {
-  // 1. Первичная отрисовка
-  const oldTbody = document.getElementById("expenses-tbody");
-  if (oldTbody) {
-    oldTbody.replaceWith(renderTable(budgetData));
+import { projects, expenses } from './data.js';
+import { renderProjectCard, renderExpenseTable, renderEmpty, renderSkeleton, createElement } from './render.js';
+
+function initTheme() {
+  const themeToggle = document.getElementById('theme-toggle');
+  const savedTheme = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  
+  if (savedTheme) {
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  } else if (prefersDark) {
+    document.documentElement.setAttribute('data-theme', 'dark');
   }
 
-  const statsContainer = document.getElementById("stats-container");
-  if (statsContainer) {
-    const totalSum = budgetData.reduce((sum, p) => sum + p.expenses, 0);
-    const avgPrice = totalSum / budgetData.length;
-    const avgRating = budgetData.reduce((s, p) => s + p.rating, 0) / budgetData.length;
-    statsContainer.replaceChildren(renderStatistics({
-      total: budgetData.length,
-      totalSum: totalSum,
-      avgPrice: avgPrice,
-      avgRating: avgRating
-    }));
-  }
-
-  // 2. Темы
-  const themeSelect = document.getElementById("theme-select");
-  const accentPicker = document.getElementById("accent-color");
-  if (themeSelect && accentPicker) {
-    themeSelect.value = localStorage.getItem('app-theme') || 'dark';
-    accentPicker.value = localStorage.getItem('app-accent') || '#06b6d4';
-
-    themeSelect.addEventListener("change", (e) => {
-      document.documentElement.setAttribute("data-theme", e.target.value);
-      localStorage.setItem('app-theme', e.target.value);
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
     });
+  }
+}
 
-    accentPicker.addEventListener("input", (e) => {
-      const hex = e.target.value;
-      document.documentElement.style.setProperty('--accent', hex);
-      document.documentElement.style.setProperty('--accent-rgb', 
-        `${parseInt(hex.slice(1,3),16)}, ${parseInt(hex.slice(3,5),16)}, ${parseInt(hex.slice(5,7),16)}`);
-      localStorage.setItem('app-accent', hex);
+function initTabs() {
+  const tablist = document.querySelector('[role="tablist"]');
+  if (!tablist) return;
+  const tabs = [...tablist.querySelectorAll('[role="tab"]')];
+  const panels = [...document.querySelectorAll('[role="tabpanel"]')];
+
+  function activate(idx) {
+    tabs.forEach((t, i) => {
+      const on = i === idx;
+      t.setAttribute('aria-selected', String(on));
+      t.tabIndex = on ? 0 : -1;
+      if (panels[i]) panels[i].hidden = !on;
     });
   }
 
-  // 3. Элементы фильтров
-  const searchInput = document.getElementById("search-input");
-  const categorySelect = document.getElementById("category-filter");
-  const minPriceInput = document.getElementById("min-price");
-  const maxPriceInput = document.getElementById("max-price");
-  const resetBtn = document.getElementById("reset-btn");
-  const instockCheckbox = document.getElementById("filter-instock");
+  tablist.addEventListener('click', e => {
+    const tab = e.target.closest('[role="tab"]');
+    if (tab) activate(tabs.indexOf(tab));
+  });
 
-  // Заполняем категории
-  if (categorySelect) {
-    [...new Set(budgetData.map(p => p.category))].sort().forEach(cat => {
-      const opt = document.createElement("option");
-      opt.value = cat;
-      opt.textContent = cat;
-      categorySelect.appendChild(opt);
-    });
-  }
+  tablist.addEventListener('keydown', e => {
+    const i = tabs.indexOf(document.activeElement);
+    if (i < 0) return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); activate((i + 1) % tabs.length); tabs[(i + 1) % tabs.length].focus(); }
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); activate((i - 1 + tabs.length) % tabs.length); tabs[(i - 1 + tabs.length) % tabs.length].focus(); }
+  });
 
-  // Функция обновления таблицы
-  function updateTable(products) {
-    const tbody = document.getElementById("expenses-tbody");
-    if (tbody) tbody.replaceWith(renderTable(products));
-  }
+  activate(0);
+}
 
-  // Функция фильтрации (поиск, категория, цена, наличие)
-  function applyFilters() {
-    let result = [...budgetData];
+function initModal() {
+  const modal = document.getElementById('deal-modal');
+  if (!modal) return;
+  const backdrop = modal.querySelector('.modal__backdrop');
+  const closeBtns = modal.querySelectorAll('.modal__close');
+  let lastFocused = null;
+
+  function open(data) {
+    lastFocused = document.activeElement;
+    modal.hidden = false;
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('no-scroll');
     
-    if (searchInput && searchInput.value.trim()) {
-      const q = searchInput.value.trim().toLowerCase();
-      result = result.filter(p => p.name.toLowerCase().includes(q));
+    const body = modal.querySelector('.modal__body');
+    body.replaceChildren();
+    
+    const { item, type } = data;
+    
+    body.append(
+      createElement('h3', '', item.title),
+      createElement('p', '', item.description || 'Описание отсутствует'),
+      createElement('p', '', `Статус: ${item.status}`)
+    );
+
+    if (type === 'project') {
+      body.append(createElement('p', '', `План: ${item.budgetPlan.toLocaleString()} ₽`));
+      body.append(createElement('p', '', `Руководитель: ${item.manager}`));
+    } else {
+      body.append(createElement('p', '', `Факт: ${item.fact.toLocaleString()} ₽`));
+      body.append(createElement('p', '', `Категория: ${item.category}`));
+      body.append(createElement('p', '', `Согласовал: ${item.approvedBy}`));
     }
-    
-    if (categorySelect && categorySelect.value) {
-      result = result.filter(p => p.category === categorySelect.value);
-    }
-    
-    if (minPriceInput && minPriceInput.value) {
-      result = result.filter(p => p.expenses >= Number(minPriceInput.value));
-    }
-    
-    if (maxPriceInput && maxPriceInput.value) {
-      result = result.filter(p => p.expenses <= Number(maxPriceInput.value));
-    }
-    
-    if (instockCheckbox && instockCheckbox.checked) {
-      result = result.filter(p => p.inStock);
-    }
-    
-    updateTable(result);
+
+    modal.querySelector('.modal__close')?.focus();
   }
 
-  // Слушатели для фильтров
-  if (searchInput) searchInput.addEventListener("input", applyFilters);
-  if (categorySelect) categorySelect.addEventListener("change", applyFilters);
-  if (minPriceInput) minPriceInput.addEventListener("input", applyFilters);
-  if (maxPriceInput) maxPriceInput.addEventListener("input", applyFilters);
-  if (instockCheckbox) instockCheckbox.addEventListener("change", applyFilters);
-
-  // Кнопка сброса
-  if (resetBtn) {
-    resetBtn.addEventListener("click", () => {
-      if (searchInput) searchInput.value = "";
-      if (categorySelect) categorySelect.value = "";
-      if (minPriceInput) minPriceInput.value = "";
-      if (maxPriceInput) maxPriceInput.value = "";
-      if (instockCheckbox) instockCheckbox.checked = false;
-      updateTable(budgetData);
-    });
+  function close() {
+    modal.hidden = true;
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('no-scroll');
+    lastFocused?.focus();
   }
 
-  // 4. СОРТИРОВКА
-  let sortDirPrice = "asc";
-  let sortDirRating = "desc";
-  let sortDirDate = "asc";
+  document.addEventListener('open-modal', (e) => open(e.detail));
+  backdrop.addEventListener('click', close);
+  closeBtns.forEach(btn => btn.addEventListener('click', close));
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !modal.hidden) close();
+  });
+}
 
-  if (document.getElementById("sort-price-btn")) {
-    document.getElementById("sort-price-btn").addEventListener("click", () => {
-      let sorted = [...budgetData].sort((a, b) => sortDirPrice === "asc" ? a.expenses - b.expenses : b.expenses - a.expenses);
-      updateTable(sorted);
-      sortDirPrice = sortDirPrice === "asc" ? "desc" : "asc";
-    });
+export function showToast(message, type = 'info') {
+  let root = document.querySelector('.toast-stack');
+  if (!root) {
+    root = document.createElement('section');
+    root.className = 'toast-stack';
+    root.setAttribute('aria-live', 'polite');
+    document.body.append(root);
+  }
+  const t = document.createElement('output');
+  t.className = `toast toast--${type}`;
+  t.textContent = message;
+  root.append(t);
+  requestAnimationFrame(() => t.classList.add('is-visible'));
+  setTimeout(() => {
+    t.classList.remove('is-visible');
+    setTimeout(() => t.remove(), 300);
+  }, 3000);
+}
+
+function initValidation() {
+  const form = document.getElementById('deal-form');
+  if (!form) return;
+
+  const rules = {
+    title: v => v.trim().length >= 3 || 'Минимум 3 символа',
+    amount: v => Number(v) > 0 || 'Сумма должна быть больше 0',
+  };
+
+  const fields = form.querySelectorAll('[data-rule]');
+
+  function validateField(el) {
+    const rule = rules[el.dataset.rule];
+    const result = rule ? rule(el.value) : true;
+    const errorEl = form.querySelector(`#${el.id}-error`);
+    const ok = result === true;
+    el.setAttribute('aria-invalid', String(!ok));
+    if (errorEl) errorEl.textContent = ok ? '' : result;
+    return ok;
   }
 
-  if (document.getElementById("sort-rating-btn")) {
-    document.getElementById("sort-rating-btn").addEventListener("click", () => {
-      let sorted = [...budgetData].sort((a, b) => sortDirRating === "asc" ? a.rating - b.rating : b.rating - a.rating);
-      updateTable(sorted);
-      sortDirRating = sortDirRating === "asc" ? "desc" : "asc";
+  fields.forEach(el => {
+    el.addEventListener('blur', () => validateField(el));
+    el.addEventListener('input', () => {
+      clearTimeout(el._timer);
+      el._timer = setTimeout(() => validateField(el), 300);
     });
-  }
+  });
 
-  if (document.getElementById("sort-date-btn")) {
-    document.getElementById("sort-date-btn").addEventListener("click", () => {
-      let sorted = [...budgetData].sort((a, b) => sortDirDate === "asc" ? new Date(a.date) - new Date(b.date) : new Date(b.date) - new Date(a.date));
-      updateTable(sorted);
-      sortDirDate = sortDirDate === "asc" ? "desc" : "asc";
-    });
-  }
-
-  // 5. МОДАЛЬНОЕ ОКНО
-  const modalOverlay = document.getElementById("modal-overlay");
-  const modalBody = document.getElementById("modal-body");
-  const modalClose = document.getElementById("modal-close");
-  const modalOk = document.getElementById("modal-ok");
-  let focusedElementBeforeModal;
-
-  if (modalOverlay) {
-    document.getElementById("main-table").addEventListener("click", (e) => {
-      const tr = e.target.closest("tr");
-      if (tr && tr.dataset.id) {
-        const product = budgetData.find(p => p.id == tr.dataset.id);
-        if (product) {
-          focusedElementBeforeModal = document.activeElement;
-          modalBody.replaceChildren();
-          
-          const info = [
-            { label: "Название", value: product.name },
-            { label: "Категория", value: product.category },
-            { label: "Статус", value: product.status },
-            { label: "Факт. расходы", value: `${product.expenses} руб.` },
-            { label: "План. расходы", value: `${product.planned} руб.` },
-            { label: "Дата", value: product.date }
-          ];
-          
-          info.forEach(item => {
-            const p = document.createElement("p");
-            const strong = document.createElement("strong");
-            strong.textContent = item.label + ": ";
-            p.appendChild(strong);
-            p.appendChild(document.createTextNode(item.value));
-            p.style.marginBottom = "10px";
-            modalBody.appendChild(p);
-          });
-
-          modalOverlay.classList.add("show");
-          document.body.classList.add("modal-open");
-          setTimeout(() => modalClose.focus(), 50);
-        }
-      }
-    });
-
-    const closeModal = () => {
-      modalOverlay.classList.remove("show");
-      document.body.classList.remove("modal-open");
-      if (focusedElementBeforeModal) focusedElementBeforeModal.focus();
-    };
-
-    if (modalClose) modalClose.addEventListener("click", closeModal);
-    if (modalOk) modalOk.addEventListener("click", closeModal);
-    modalOverlay.addEventListener("click", (e) => {
-      if (e.target === modalOverlay) closeModal();
-    });
-  }
-
-  // 6. МОБИЛЬНОЕ МЕНЮ И ESCAPE
-  const hamburger = document.getElementById("hamburger");
-  const mobileOverlay = document.getElementById("mobile-overlay");
-  const header = document.querySelector("header");
-
-  if (hamburger) {
-    hamburger.addEventListener("click", () => {
-      hamburger.classList.toggle("active");
-      header.classList.toggle("active");
-      if (mobileOverlay) mobileOverlay.classList.toggle("active");
-    });
-  }
-
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-      if (modalOverlay && modalOverlay.classList.contains("show")) {
-        modalOverlay.classList.remove("show");
-        document.body.classList.remove("modal-open");
-        if (focusedElementBeforeModal) focusedElementBeforeModal.focus();
-      }
-      if (header && header.classList.contains("active")) {
-        hamburger.classList.remove("active");
-        header.classList.remove("active");
-        if (mobileOverlay) mobileOverlay.classList.remove("active");
-      }
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    let isValid = true;
+    fields.forEach(el => { if (!validateField(el)) isValid = false; });
+    if (isValid) {
+      showToast('Заявка на бюджет успешно отправлена', 'success');
+      form.reset();
+      fields.forEach(el => el.setAttribute('aria-invalid', 'false'));
     }
   });
+}
+
+function initDataRender() {
+  const listContainer = document.getElementById('app-list');
+  if (!listContainer) return;
+
+  listContainer.append(renderSkeleton());
+
+  setTimeout(() => {
+    listContainer.replaceChildren();
+    if (projects.length === 0) {
+      listContainer.append(renderEmpty());
+    } else {
+      projects.forEach(project => {
+        const card = renderProjectCard(project);
+        listContainer.append(card);
+      });
+    }
+  }, 800);
+
+  const tableContainer = document.getElementById('app-table');
+  if (tableContainer) {
+    tableContainer.append(renderExpenseTable(expenses));
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+  initTabs();
+  initModal();
+  initValidation();
+  initDataRender();
 });
